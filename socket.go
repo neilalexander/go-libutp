@@ -112,7 +112,10 @@ func NewSocket(network, addr string, opts ...NewSocketOpt) (*Socket, error) {
 	if err != nil {
 		return nil, err
 	}
+	return NewSocketFromPacketConn(pc, opts...)
+}
 
+func NewSocketFromPacketConn(pc net.PacketConn, opts ...NewSocketOpt) (*Socket, error) {
 	s := &Socket{
 		pc:          pc,
 		backlog:     make(chan *Conn, 5),
@@ -430,6 +433,10 @@ func (s *Socket) DialContext(ctx context.Context, network, addr string) (_ net.C
 	if err != nil {
 		return nil, fmt.Errorf("error resolving address: %v", err)
 	}
+	return s.DialAddrContext(ctx, ua)
+}
+
+func (s *Socket) DialAddrContext(ctx context.Context, ua net.Addr) (_ net.Conn, err error) {
 	sa, sl := netAddrToLibSockaddr(ua)
 	mu.Lock()
 	defer mu.Unlock()
